@@ -1,0 +1,4 @@
+[[sparql-plugin]]
+SPARQL Plugin
+=============
+

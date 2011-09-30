@@ -33,6 +33,7 @@ import org.neo4j.server.plugins.PluginTarget;
 import org.neo4j.server.plugins.ServerPlugin;
 import org.neo4j.server.plugins.Source;
 import org.neo4j.server.rest.repr.ListRepresentation;
+import org.neo4j.server.rest.repr.MappingRepresentation;
 import org.neo4j.server.rest.repr.Representation;
 import org.neo4j.server.rest.repr.RepresentationType;
 import org.neo4j.server.rest.repr.ValueRepresentation;
@@ -91,7 +92,9 @@ public class SPARQLPlugin extends ServerPlugin
         }
         catch ( final Exception e )
         {
+            e.printStackTrace();
             return ValueRepresentation.string( e.getMessage() );
+//            return new ExceptionRepresentation( e ) );
         }
     }
 

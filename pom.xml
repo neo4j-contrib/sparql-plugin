@@ -15,6 +15,7 @@
 
   <properties>
     <!-- Jar Versions -->
+    <sesame.version>2.5.0</sesame.version>
     <spring.version>3.0.4.RELEASE</spring.version>
     <jackson.version>1.5.2</jackson.version>
     <cxf.version>2.3.1</cxf.version>
@@ -120,6 +121,21 @@ the relevant Commercial Agreement.
        <artifactId>blueprints-graph-sail</artifactId>
       <version>${blueprints.version}</version>
      </dependency>
+     <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-rio-ntriples</artifactId>
+            <version>${sesame.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-repository-api</artifactId>
+            <version>${sesame.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-repository-sail</artifactId>
+            <version>${sesame.version}</version>
+        </dependency>
 
     <!-- Jackson Dependencies -->
     <dependency>
@@ -215,6 +231,11 @@ the relevant Commercial Agreement.
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+            <id>openrdf</id>
+            <name>openrdf</name>
+            <url>http://repo.aduna-software.org/maven2/releases/</url>
+        </repository>
   </repositories>
 
 </project>

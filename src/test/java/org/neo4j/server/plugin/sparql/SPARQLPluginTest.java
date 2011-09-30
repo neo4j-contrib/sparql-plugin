@@ -28,11 +28,17 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.server.rest.repr.OutputFormat;
 import org.neo4j.server.rest.repr.Representation;
-import org.neo4j.test.ImpermanentGraphDatabase;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.impl.EmptyBindingSet;
+import org.openrdf.query.parser.ParsedQuery;
+import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
@@ -43,7 +49,7 @@ import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 public class SPARQLPluginTest
 {
 
-    private static ImpermanentGraphDatabase neo4j = null;
+    private static EmbeddedGraphDatabase neo4j = null;
     private static SPARQLPlugin plugin = null;
     private static OutputFormat json = null;
     private static JSONParser parser = new JSONParser();
@@ -51,7 +57,7 @@ public class SPARQLPluginTest
     @BeforeClass
     public static void setUpBeforeClass() throws Exception
     {
-        neo4j = new ImpermanentGraphDatabase( "target/db" );
+        neo4j = new EmbeddedGraphDatabase( "target/db1" );
         System.setProperty( "org.openrdf.repository.debug", "true" );
         plugin = new SPARQLPlugin();
         Sail sail = new GraphSail(new Neo4jGraph( neo4j ));
@@ -66,7 +72,39 @@ public class SPARQLPluginTest
             System.out.println(results.next());
         }
         sc.close();
-//        sail.shutDown();
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery query = null;
+        CloseableIteration<? extends BindingSet, QueryEvaluationException> sparqlResults;
+
+        try
+        {
+            query = parser.parseQuery( queryString,
+                    "http://neo4j.org" );
+        }
+        catch ( MalformedQueryException e )
+        {
+            System.out.println( "MalformeSystem.out.printlndQueryException "
+                                + e.getMessage() );
+        }
+        try
+        {
+            sparqlResults = sail.getConnection().evaluate(
+                    query.getTupleExpr(), query.getDataset(),
+                    new EmptyBindingSet(), false );
+            while ( sparqlResults.hasNext() )
+            {
+                System.out.println( "-------------" );
+                System.out.println( "Result: " + sparqlResults.next() );
+            }
+        }
+        catch ( QueryEvaluationException e )
+        {
+            System.out.println( "QueryEvaluationException " + e.getMessage() );
+        }
+        catch ( SailException e )
+        {
+            System.out.println( "SailException " + e.getMessage() );
+        }        
 
             }
 
@@ -75,10 +113,19 @@ public class SPARQLPluginTest
             return plugin.executeSPARQL( neo4j, script, params );
     }
 
+    private static String queryString ="" +
+                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+                "PREFIX neo4j: <http://www.neo4j.org> " +
+                "SELECT ?x ?y " +
+                "WHERE { " +
+                "?x <http://neo4j.org#knows> ?y ." +
+                "}";
+
     @Test
     public void executeSelect() throws Exception
     {
-        JSONObject object = (JSONObject) parser.parse( json.format( SPARQLPluginTest.executeTestScript( "SELECT ?x ?y WHERE { ?x <http://neo4j.org#knows> ?y }", new HashMap()) ) );
+        JSONObject object = (JSONObject) parser.parse( json.format( SPARQLPluginTest.executeTestScript( queryString , new HashMap()) ) );
         // Assert.assertEquals(
         //       ( (JSONObject) object.get( "data" ) ).get( "name" ), "sara" );
     }

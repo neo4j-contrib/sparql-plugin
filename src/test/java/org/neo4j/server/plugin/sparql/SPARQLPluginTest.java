@@ -19,115 +19,97 @@
  */
 package org.neo4j.server.plugin.sparql;
 
+import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.server.rest.repr.OutputFormat;
 import org.neo4j.server.rest.repr.Representation;
+import org.neo4j.server.rest.repr.formats.JsonFormat;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.impl.EmptyBindingSet;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
 
-import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.pgm.impls.neo4jbatch.Neo4jBatchGraph;
 import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 
 public class SPARQLPluginTest
 {
 
-    private static EmbeddedGraphDatabase neo4j = null;
     private static SPARQLPlugin plugin = null;
     private static OutputFormat json = null;
-    private static JSONParser parser = new JSONParser();
+    private static GraphDatabaseService neo4j;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception
     {
-        neo4j = new EmbeddedGraphDatabase( "target/db1" );
-        System.setProperty( "org.openrdf.repository.debug", "true" );
-        plugin = new SPARQLPlugin();
-        Sail sail = new GraphSail(new Neo4jGraph( neo4j ));
+        json = new OutputFormat( new JsonFormat(), new URI( "http://localhost/" ), null );
+//        Neo4jGraph neo1 = new Neo4jGraph( new EmbeddedGraphDatabase( "target/db1" ), true );
+//        neo1.setMaxBufferSize( 20000 );
+        Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
+        Sail sail = new GraphSail(neo1);
         sail.initialize();
-        SailConnection sc = sail.getConnection();
+        SailRepositoryConnection sc = new SailRepository( sail ).getConnection();
         ValueFactory vf = sail.getValueFactory();
-        sc.addStatement(vf.createURI("http://neo4j.org#joe"), vf.createURI("http://neo4j.org#knows"), vf.createURI("http://neo4j.org#sara"), vf.createURI("http://neo4j.org"));
-        sc.addStatement(vf.createURI("http://neo4j.org#joe"), vf.createURI("http://neo4j.org#name"), vf.createLiteral("joe"), vf.createURI("http://neo4j.org"));
+        sc.add( vf.createURI( "http://neo4j.org#joe" ),
+                vf.createURI( "http://neo4j.org#knows" ),
+                vf.createURI( "http://neo4j.org#sara" ),
+                vf.createURI( "http://neo4j.org" ) );
+        sc.add( vf.createURI( "http://neo4j.org#joe" ),
+                vf.createURI( "http://neo4j.org#name" ),
+                vf.createLiteral( "joe" ), vf.createURI( "http://neo4j.org" ) );
         sc.commit();
-        CloseableIteration<? extends Statement, SailException> results = sc.getStatements(vf.createURI("http://neo4j.org#joe"), null, null, false);
-        while(results.hasNext()) {
-            System.out.println(results.next());
+        CloseableIteration<Statement, RepositoryException> results = sc.getStatements(
+                vf.createURI( "http://neo4j.org#joe" ), null, null, false );
+        while ( results.hasNext() )
+        {
+            System.out.println( results.next() );
         }
         sc.close();
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery query = null;
-        CloseableIteration<? extends BindingSet, QueryEvaluationException> sparqlResults;
+        sail.shutDown();
+        neo1.shutdown();
+        plugin = new SPARQLPlugin();
+        neo4j = new EmbeddedGraphDatabase( "target/db1" );
 
-        try
-        {
-            query = parser.parseQuery( queryString,
-                    "http://neo4j.org" );
-        }
-        catch ( MalformedQueryException e )
-        {
-            System.out.println( "MalformeSystem.out.printlndQueryException "
-                                + e.getMessage() );
-        }
-        try
-        {
-            sparqlResults = sail.getConnection().evaluate(
-                    query.getTupleExpr(), query.getDataset(),
-                    new EmptyBindingSet(), false );
-            while ( sparqlResults.hasNext() )
-            {
-                System.out.println( "-------------" );
-                System.out.println( "Result: " + sparqlResults.next() );
-            }
-        }
-        catch ( QueryEvaluationException e )
-        {
-            System.out.println( "QueryEvaluationException " + e.getMessage() );
-        }
-        catch ( SailException e )
-        {
-            System.out.println( "SailException " + e.getMessage() );
-        }        
-
-            }
-
-    private static Representation executeTestScript(final String script, Map params)
-    {
-            return plugin.executeSPARQL( neo4j, script, params );
     }
 
-    private static String queryString ="" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
-                "PREFIX neo4j: <http://www.neo4j.org> " +
-                "SELECT ?x ?y " +
-                "WHERE { " +
-                "?x <http://neo4j.org#knows> ?y ." +
-                "}";
+    private static Representation executeTestScript( final String script,
+            Map params )
+    {
+        return plugin.executeSPARQL( neo4j, script, params );
+    }
+
+    private static String queryString = ""
+                                        + "SELECT ?x ?y " + "WHERE { "
+                                        + "?x <http://neo4j.org#knows> ?y ."
+                                        + "}";
 
     @Test
     public void executeSelect() throws Exception
     {
-        JSONObject object = (JSONObject) parser.parse( json.format( SPARQLPluginTest.executeTestScript( queryString , new HashMap()) ) );
-        // Assert.assertEquals(
-        //       ( (JSONObject) object.get( "data" ) ).get( "name" ), "sara" );
+         Representation result = SPARQLPluginTest.executeTestScript(
+         queryString, new HashMap() );
+        String format = json.format(
+         result );
+         assertTrue(format.contains( "sara" ));
+         assertTrue(format.contains( "joe" ));
+    }
+
+    @AfterClass
+    public static void cleanUp()
+    {
+        neo4j.shutdown();
     }
 
 }

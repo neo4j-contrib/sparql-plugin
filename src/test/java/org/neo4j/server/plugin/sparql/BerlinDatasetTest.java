@@ -22,8 +22,6 @@ package org.neo4j.server.plugin.sparql;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,31 +36,29 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
 
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.pgm.impls.neo4jbatch.Neo4jBatchGraph;
 import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 
 public class BerlinDatasetTest
 {
-    
+
+    private static String dB_DIR = "target/berlindb";
 
     /**
-     * the queries are coming from http://www4.wiwiss.fu-berlin.de/bizer/BerlinSPARQLBenchmark/spec/ExploreUseCase/index.html
+     * the queries are coming from
+     * http://www4.wiwiss.fu-berlin.de/bizer/BerlinSPARQLBenchmark
+     * /spec/ExploreUseCase/index.html
      */
     @Test
-    public void importBerlinAndQuery() throws Exception
+    public void berlinQuery() throws Exception
     {
-        Neo4jGraph neo = new Neo4jGraph( "target/berlindb" );
-        neo.setMaxBufferSize( 10000 );
-        Sail sail = new GraphSail( neo );
+//        loadTriples();
+        Sail sail = new GraphSail( new Neo4jGraph( dB_DIR ) );
         sail.initialize();
-        SailRepositoryConnection connection = new SailRepository( sail ).getConnection();
-        loadTriples( neo, connection );
         Map<String, String> queries = new HashMap<String, String>();
         queries.put(
                 "q1",
@@ -148,7 +144,7 @@ public class BerlinDatasetTest
                         + "?product bsbm:productFeature  <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductFeature8> . "
                         + "?product bsbm:productPropertyNumeric2 ?p2 . "
                         + "FILTER ( ?p2>759 ) " + "} " + "} "
-//                        + "ORDER BY ?label LIMIT 10" );
+                        // + "ORDER BY ?label LIMIT 10" );
                         + "ORDER BY ?label " + "LIMIT 10  " + "OFFSET 10 " );
 
         queries.put(
@@ -307,9 +303,8 @@ public class BerlinDatasetTest
             {
                 query = parser.parseQuery( queries.get( key ),
                         "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/" );
-                sparqlResults = conn.evaluate(
-                        query.getTupleExpr(), query.getDataset(),
-                        new EmptyBindingSet(), false );
+                sparqlResults = conn.evaluate( query.getTupleExpr(),
+                        query.getDataset(), new EmptyBindingSet(), false );
                 System.out.println( "Results --- " + key );
                 while ( sparqlResults.hasNext() )
                 {
@@ -323,26 +318,32 @@ public class BerlinDatasetTest
             }
         conn.close();
         sail.shutDown();
-        neo.shutdown();
-
     }
 
-    private void loadTriples( Neo4jGraph neo,
-            SailRepositoryConnection connection ) throws RDFParseException,
-            RDFHandlerException, FileNotFoundException, IOException,
-            SailException
+    @Test
+    public void loadTriples() throws Exception
     {
-        File file = new File( "berlin_nt_100.nt" );
-        System.out.println( "Loading " + file + ": " );
+        Neo4jBatchGraph neo = new Neo4jBatchGraph( dB_DIR+"_batch" );
+//        Neo4jGraph neo = new Neo4jGraph( dB_DIR+"_embedded" );
+//        neo.setMaxBufferSize( 20000 );
+        Sail sail = new GraphSail( neo );
+        sail.initialize();
+        SailRepositoryConnection connection;
         try
         {
+            connection = new SailRepository( sail ).getConnection();
+            File file = new File( "berlin_nt_100.nt" );
+            System.out.println( "Loading " + file + ": " );
             connection.add( file, null, RDFFormat.NTRIPLES );
+            connection.close();
         }
-        catch ( RepositoryException e )
+        catch ( RepositoryException e1 )
         {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            e1.printStackTrace();
         }
-        System.out.print( '\n' );
+        System.out.print( "Done." );
+        sail.shutDown();
+        neo.shutdown();
     }
 }

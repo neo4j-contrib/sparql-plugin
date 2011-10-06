@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -40,7 +41,6 @@ import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.pgm.impls.neo4jbatch.Neo4jBatchGraph;
 import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 
 public class BerlinDatasetTest
@@ -56,7 +56,7 @@ public class BerlinDatasetTest
     @Test
     public void berlinQuery() throws Exception
     {
-//        loadTriples();
+        loadTriples();
         Sail sail = new GraphSail( new Neo4jGraph( dB_DIR ) );
         sail.initialize();
         Map<String, String> queries = new HashMap<String, String>();
@@ -321,11 +321,12 @@ public class BerlinDatasetTest
     }
 
     @Test
+    @Ignore
     public void loadTriples() throws Exception
     {
-        Neo4jBatchGraph neo = new Neo4jBatchGraph( dB_DIR+"_batch" );
-//        Neo4jGraph neo = new Neo4jGraph( dB_DIR+"_embedded" );
-//        neo.setMaxBufferSize( 20000 );
+//        Neo4jBatchGraph neo = new Neo4jBatchGraph( dB_DIR+"_batch" );
+        Neo4jGraph neo = new Neo4jGraph( dB_DIR );
+        neo.setMaxBufferSize( 20000 );
         Sail sail = new GraphSail( neo );
         sail.initialize();
         SailRepositoryConnection connection;

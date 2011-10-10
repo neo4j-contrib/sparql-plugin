@@ -41,7 +41,7 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-import com.tinkerpop.blueprints.pgm.impls.neo4jbatch.Neo4jBatchGraph;
+import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
 import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 
 public class SPARQLPluginTest
@@ -55,9 +55,9 @@ public class SPARQLPluginTest
     public static void setUpBeforeClass() throws Exception
     {
         json = new OutputFormat( new JsonFormat(), new URI( "http://localhost/" ), null );
-//        Neo4jGraph neo1 = new Neo4jGraph( new EmbeddedGraphDatabase( "target/db1" ), true );
-//        neo1.setMaxBufferSize( 20000 );
-        Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
+        Neo4jGraph neo1 = new Neo4jGraph( new EmbeddedGraphDatabase( "target/db1" ), true );
+        neo1.setMaxBufferSize( 20000 );
+//        Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
         Sail sail = new GraphSail(neo1);
         sail.initialize();
         SailRepositoryConnection sc = new SailRepository( sail ).getConnection();

@@ -34,12 +34,14 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.server.rest.repr.OutputFormat;
 import org.neo4j.server.rest.repr.Representation;
 import org.neo4j.server.rest.repr.formats.JsonFormat;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
 import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
@@ -55,9 +57,18 @@ public class SPARQLPluginTest
     public static void setUpBeforeClass() throws Exception
     {
         json = new OutputFormat( new JsonFormat(), new URI( "http://localhost/" ), null );
-        Neo4jGraph neo1 = new Neo4jGraph( new EmbeddedGraphDatabase( "target/db1" ), true );
+        neo1 = new Neo4jGraph( new ImpermanentGraphDatabase(), true );
         neo1.setMaxBufferSize( 20000 );
 //        Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
+        Sail sail = insertData( neo1 );
+        plugin = new SPARQLPlugin();
+        neo4j = new EmbeddedGraphDatabase( "target/db1" );
+
+    }
+
+    public static Sail insertData( Neo4jGraph neo1 ) throws SailException,
+            RepositoryException
+    {
         Sail sail = new GraphSail(neo1);
         sail.initialize();
         SailRepositoryConnection sc = new SailRepository( sail ).getConnection();
@@ -71,17 +82,15 @@ public class SPARQLPluginTest
                 vf.createLiteral( "joe" ), vf.createURI( "http://neo4j.org" ) );
         sc.commit();
         CloseableIteration<Statement, RepositoryException> results = sc.getStatements(
-                vf.createURI( "http://neo4j.org#joe" ), null, null, false );
+                null, null, null, false );
+        System.out.println("dump-----------");
         while ( results.hasNext() )
         {
             System.out.println( results.next() );
         }
+        System.out.println("dump end-----------");
         sc.close();
-        sail.shutDown();
-        neo1.shutdown();
-        plugin = new SPARQLPlugin();
-        neo4j = new EmbeddedGraphDatabase( "target/db1" );
-
+        return sail;
     }
 
     private static Representation executeTestScript( final String script,
@@ -94,8 +103,10 @@ public class SPARQLPluginTest
                                         + "SELECT ?x ?y " + "WHERE { "
                                         + "?x <http://neo4j.org#knows> ?y ."
                                         + "}";
+    private static Neo4jGraph neo1;
 
     @Test
+//    @Ignore
     public void executeSelect() throws Exception
     {
          Representation result = SPARQLPluginTest.executeTestScript(
@@ -105,10 +116,19 @@ public class SPARQLPluginTest
          assertTrue(format.contains( "sara" ));
          assertTrue(format.contains( "joe" ));
     }
+    
+//    @Test
+//    public void executeDoubleInsert() throws Exception
+//    {
+//        insertData( neo1 );
+//        insertData( neo1 );
+//        executeSelect();
+//    }
 
     @AfterClass
     public static void cleanUp()
     {
+        neo1.shutdown();
         neo4j.shutdown();
     }
 

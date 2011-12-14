@@ -19,52 +19,34 @@
  */
 package org.neo4j.server.plugin.sparql;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.server.rest.AbstractRestFunctionalTestBase;
-import org.neo4j.test.GraphDescription.Graph;
+import org.openrdf.repository.RepositoryException;
+
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
 
 public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
 {
-    private static final String ENDPOINT = "http://localhost:7474/db/data/ext/GremlinPlugin/graphdb/execute_script";
+    private static final String ENDPOINT = "http://localhost:7474/db/data/ext/SPARQLPlugin/graphdb/execute_sparql";
 
  
-    
-    private String formatGroovy( String script )
-    {
-        script = script.replace( ";", "\n" );
-        if( !script.endsWith( "\n" ) )
-        {
-            script += "\n";
-        }
-        return "_Raw script source_\n\n" +
- "[source, groovy]\n" +
-        		"----\n" +
-        		script +
-        		"----\n";
+    @Before
+    public void doData() throws Exception, RepositoryException {
+        SPARQLPluginTest.insertData( new Neo4jGraph( graphdb(), true ) );
     }
-
     @Test
-    @Ignore
-    @Graph(value = {"A FOLLOW B", "B FOLLOW A", "B FOLLOW C"}, autoIndexNodes = true)
     public void followers() throws UnsupportedEncodingException
     {
-        String script = "i = g.v("+data.get().get( "B" ).getId() +").out('FOLLOW')";
-        gen()
-        .expectedStatus( Status.OK.getStatusCode() )
-        .description( formatGroovy( script ) );
-        String response = gen().payload( "script=" + URLEncoder.encode( script, "UTF-8") )
-        .payloadType( MediaType.APPLICATION_FORM_URLENCODED_TYPE )
-        .post( ENDPOINT )
-        .entity();
-        assertTrue(response.contains( "you" ));
+        String payload = "{\"query\":\"SELECT ?x ?y WHERE { ?x <http://neo4j.org#knows> ?y .}\"}";
+        
+        String entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post( ENDPOINT ).entity();
+        assertTrue(entity.contains( "http://neo4j.org#sara" ));
+        System.out.println(entity);
     }
 }

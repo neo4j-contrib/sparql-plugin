@@ -19,34 +19,51 @@
  */
 package org.neo4j.server.plugin.sparql;
 
-import static org.junit.Assert.*;
-
-import java.io.UnsupportedEncodingException;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.server.rest.AbstractRestFunctionalTestBase;
-import org.openrdf.repository.RepositoryException;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
-import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
 
 public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
 {
     private static final String ENDPOINT = "http://localhost:7474/db/data/ext/SPARQLPlugin/graphdb/execute_sparql";
+    private static final String QUAD_ENDPOINT = "http://localhost:7474/db/data/ext/SPARQLPlugin/graphdb/insert_quad";
 
- 
-    @Before
-    public void doData() throws Exception, RepositoryException {
-        SPARQLPluginTest.insertData( new Neo4jGraph( graphdb(), true ) );
-    }
     @Test
-    public void followers() throws UnsupportedEncodingException
+    public void insert_quads()
     {
-        String payload = "{\"query\":\"SELECT ?x ?y WHERE { ?x <http://neo4j.org#knows> ?y .}\"}";
-        
-        String entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post( ENDPOINT ).entity();
-        assertTrue(entity.contains( "http://neo4j.org#sara" ));
-        System.out.println(entity);
+
+        String payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#knows\",\"o\":\"http://neo4j.org#sara\", \"c\":\"http://neo4j.org\"}";
+        gen.get().payload( payload ).expectedStatus( Status.NO_CONTENT ).post(
+                QUAD_ENDPOINT ).entity();
+
+    }
+
+    @Test
+    public void querying_sparql()
+    {
+
+        String payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#knows\",\"o\":\"http://neo4j.org#sara\", \"c\":\"http://neo4j.org\"}";
+        gen.get().payload( payload ).expectedStatus( Status.NO_CONTENT ).post(
+                QUAD_ENDPOINT ).entity();
+
+        payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#name\",\"o\":\"joe\", \"c\":\"http://neo4j.org\"}";
+        gen.get().payload( payload ).expectedStatus( Status.NO_CONTENT ).post(
+                QUAD_ENDPOINT ).entity();
+
+        payload = "{\"query\":\"SELECT ?n WHERE { ?x <http://neo4j.org#knows> <http://neo4j.org#sara> . ?x <http://neo4j.org#name> ?n .}\"}";
+        String entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post(
+                ENDPOINT ).entity();
+        assertTrue( entity.contains( "joe" ) );
+    }
+    
+    @Before
+    public void cleanContent()
+    {
+//        cleanDatabase();
+//        gen.get().setGraph( graphdb() );
     }
 }

@@ -26,8 +26,9 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
@@ -53,14 +54,14 @@ public class SPARQLPluginTest
     private static OutputFormat json = null;
     private static GraphDatabaseService neo4j;
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception
+    @Before
+    public void setUpBeforeClass() throws Exception
     {
-        json = new OutputFormat( new JsonFormat(), new URI( "http://localhost/" ), null );
+        json = new OutputFormat( new JsonFormat(),
+                new URI( "http://localhost/" ), null );
         neo1 = new Neo4jGraph( new ImpermanentGraphDatabase(), true );
         neo1.setMaxBufferSize( 20000 );
-//        Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
-        Sail sail = insertData( neo1 );
+        // Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
         plugin = new SPARQLPlugin();
         neo4j = new EmbeddedGraphDatabase( "target/db1" );
 
@@ -69,7 +70,7 @@ public class SPARQLPluginTest
     public static Sail insertData( Neo4jGraph neo1 ) throws SailException,
             RepositoryException
     {
-        Sail sail = new GraphSail(neo1);
+        Sail sail = new GraphSail( neo1 );
         sail.initialize();
         SailRepositoryConnection sc = new SailRepository( sail ).getConnection();
         ValueFactory vf = sail.getValueFactory();
@@ -83,50 +84,56 @@ public class SPARQLPluginTest
         sc.commit();
         CloseableIteration<Statement, RepositoryException> results = sc.getStatements(
                 null, null, null, false );
-        System.out.println("dump-----------");
+        System.out.println( "dump-----------" );
         while ( results.hasNext() )
         {
             System.out.println( results.next() );
         }
-        System.out.println("dump end-----------");
+        System.out.println( "dump end-----------" );
         sc.close();
         return sail;
     }
 
-    private static Representation executeTestScript( final String script,
-            Map params )
+    private static Representation executeSelect( final String script, Map params )
     {
         return plugin.executeSPARQL( neo4j, script, params );
     }
 
-    private static String queryString = ""
-                                        + "SELECT ?x ?y " + "WHERE { "
+    private static String queryString = "" + "SELECT ?x ?y " + "WHERE { "
                                         + "?x <http://neo4j.org#knows> ?y ."
                                         + "}";
     private static Neo4jGraph neo1;
 
     @Test
-//    @Ignore
+    @Ignore
     public void executeSelect() throws Exception
     {
-         Representation result = SPARQLPluginTest.executeTestScript(
-         queryString, new HashMap() );
-        String format = json.format(
-         result );
-         assertTrue(format.contains( "sara" ));
-         assertTrue(format.contains( "joe" ));
+        insertData( neo1 );
+        Representation result = SPARQLPluginTest.executeSelect( queryString,
+                new HashMap() );
+        String format = json.format( result );
+        assertTrue( format.contains( "sara" ) );
+        assertTrue( format.contains( "joe" ) );
     }
-    
-//    @Test
-//    public void executeDoubleInsert() throws Exception
-//    {
-//        insertData( neo1 );
-//        insertData( neo1 );
-//        executeSelect();
-//    }
 
-    @AfterClass
-    public static void cleanUp()
+    @Test
+    public void executeInsert() throws Exception
+    {
+        Representation result = plugin.executeInsert( neo4j,
+                "http://neo4j.org#joe", "http://neo4j.org#knows",
+                "http://neo4j.org#sara", "http://neo4j.org" );
+        result = plugin.executeInsert( neo4j,
+                "http://neo4j.org#joe", "http://neo4j.org#name",
+                "joe", "http://neo4j.org" );
+        result = SPARQLPluginTest.executeSelect( queryString,
+                new HashMap() );
+        String format = json.format( result );
+        assertTrue( format.contains( "sara" ) );
+        assertTrue( format.contains( "joe" ) );
+    }
+
+    @After
+    public void cleanUp()
     {
         neo1.shutdown();
         neo4j.shutdown();

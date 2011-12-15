@@ -34,11 +34,15 @@ import org.neo4j.server.plugins.Source;
 import org.neo4j.server.rest.repr.ListRepresentation;
 import org.neo4j.server.rest.repr.Representation;
 import org.neo4j.server.rest.repr.ValueRepresentation;
+import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.impl.EmptyBindingSet;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
@@ -47,6 +51,11 @@ import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 @Description( "A server side SPARQL plugin for the Neo4j REST server" )
 public class SPARQLPlugin extends ServerPlugin
 {
+
+    private Sail sail;
+    private SPARQLParser parser;
+    private SailRepositoryConnection sc;
+    private Neo4jGraph neo4jGraph;
 
     @Name( "execute_sparql" )
     @Description( "execute a SPARQL query." )
@@ -57,11 +66,10 @@ public class SPARQLPlugin extends ServerPlugin
             @Description( "JSON Map of additional parameters for the query" ) @Parameter( name = "params", optional = true ) final Map params )
     {
 
+        initSail( neo4j );
         try
         {
-            Sail sail = new GraphSail( new Neo4jGraph( neo4j, false ) );
-            sail.initialize();
-            SPARQLParser parser = new SPARQLParser();
+
             ParsedQuery query = null;
             CloseableIteration<? extends BindingSet, QueryEvaluationException> sparqlResults;
 
@@ -82,6 +90,59 @@ public class SPARQLPlugin extends ServerPlugin
             return ValueRepresentation.string( e.getMessage() );
             // return new ExceptionRepresentation( e ) );
         }
+    }
+
+    private void initSail( GraphDatabaseService neo4j )
+    {
+        if ( sail == null )
+        {
+            neo4jGraph = new Neo4jGraph( neo4j, true );
+            sail = new GraphSail( neo4jGraph );
+            try
+            {
+                sail.initialize();
+                sc = new SailRepository( sail ).getConnection();
+                parser = new SPARQLParser();
+            }
+            catch ( Exception e )
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    @Name( "insert_quad" )
+    @Description( "execute a SPARQL query." )
+    @PluginTarget( GraphDatabaseService.class )
+    public Representation executeInsert(
+            @Source final GraphDatabaseService neo4j,
+            @Description( "Subject" ) @Parameter( name = "s", optional = false ) final String s,
+            @Description( "Predicate" ) @Parameter( name = "p", optional = false ) final String p,
+            @Description( "Object" ) @Parameter( name = "o", optional = false ) final String o,
+            @Description( "Context" ) @Parameter( name = "c", optional = false ) final String c )
+    {
+        initSail( neo4j );
+        ValueFactory vf = sail.getValueFactory();
+        try
+        {
+            try{
+            sc.add( vf.createURI( s ), vf.createURI( p ), vf.createURI( o ),
+                    vf.createURI( c ) );
+            } catch (IllegalArgumentException ia) {
+                sc.add( vf.createURI( s ), vf.createURI( p ), vf.createLiteral( o ),
+                        vf.createURI( c ) );
+            }
+            sc.commit();
+            
+        }
+        catch ( RepositoryException e )
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return ValueRepresentation.emptyRepresentation();
     }
 
 }

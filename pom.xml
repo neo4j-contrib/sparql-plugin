@@ -104,12 +104,20 @@ the relevant Commercial Agreement.
       <artifactId>blueprints-neo4j-graph</artifactId>
       <version>${blueprints.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.tinkerpop.blueprints</groupId>
-      <artifactId>blueprints-neo4jbatch-graph</artifactId>
-      <version>${blueprints.version}</version>
-      <scope>provided</scope>
+      <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-ha</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-management</artifactId>
+                </exclusion>
+            </exclusions>
     </dependency>
     <dependency>
       <groupId>com.tinkerpop.blueprints</groupId>

@@ -19,14 +19,18 @@
  */
 package org.neo4j.server.plugin.sparql;
 
+import static org.junit.Assert.*;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.graphdb.Node;
+import org.neo4j.test.ImpermanentGraphDatabase;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.impl.EmptyBindingSet;
@@ -346,5 +350,45 @@ public class BerlinDatasetTest
         System.out.print( "Done." );
         sail.shutDown();
         neo.shutdown();
+    }
+    @Test
+    public void loadAndClearRDFSelfRelationship() throws Exception
+    {
+        ImpermanentGraphDatabase db = new ImpermanentGraphDatabase();
+        Neo4jGraph neo = new Neo4jGraph( db );
+        neo.setMaxBufferSize( 20000 );
+        Sail sail = new GraphSail( neo );
+        sail.initialize();
+        SailRepositoryConnection connection;
+        try
+        {
+            connection = new SailRepository( sail ).getConnection();
+            File file = new File( "self-ref.owl" );
+            System.out.println( "Loading " + file + ": " );
+            connection.add( file, null, RDFFormat.RDFXML );
+            assertEquals(2,size(db.getAllNodes()));
+            
+            connection.clear();
+            connection.close();
+            assertEquals(0,size(db.getAllNodes()));
+        }
+        catch ( RepositoryException e1 )
+        {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        sail.shutDown();
+        neo.shutdown();
+    }
+
+    private int size(Iterable<Node> iterable)
+    {
+        int count = 0;
+        Iterator<Node> iterator = iterable.iterator();
+        while(iterator.hasNext()) {
+            iterator.next();
+            count ++;
+        }
+        return count;
     }
 }

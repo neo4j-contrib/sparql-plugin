@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.neo4j.build</groupId>
     <artifactId>parent-pom</artifactId>
-    <version>25</version>
+    <version>31</version>
     <relativePath/>
   </parent>
 
@@ -10,17 +10,16 @@
   <groupId>org.neo4j.server.plugin</groupId>
   <artifactId>neo4j-sparql-plugin</artifactId>
   <packaging>jar</packaging>
-  <version>1.6-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <name>neo4j-sparql-plugin</name>
 
   <properties>
     <!-- Jar Versions -->
     <sesame.version>2.5.0</sesame.version>
-    <spring.version>3.0.4.RELEASE</spring.version>
-    <jackson.version>1.5.2</jackson.version>
+    <jackson.version>1.8.1</jackson.version>
     <cxf.version>2.3.1</cxf.version>
     <servlet-api.version>2.5</servlet-api.version>
-    <neo4j.version>1.6-SNAPSHOT</neo4j.version>
+    <neo4j.version>1.7-SNAPSHOT</neo4j.version>
     <blueprints.version>1.1</blueprints.version>
     <jersey.server.version>1.6</jersey.server.version>
     <license-text.header>GPL-3-header.txt</license-text.header>

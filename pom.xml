@@ -133,6 +133,12 @@ the relevant Commercial Agreement.
        <groupId>com.tinkerpop.blueprints</groupId>
        <artifactId>blueprints-graph-sail</artifactId>
       <version>${blueprints.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
      </dependency>
      <dependency>
             <groupId>org.openrdf.sesame</groupId>

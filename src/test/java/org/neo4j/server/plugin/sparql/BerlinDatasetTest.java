@@ -19,16 +19,16 @@
  */
 package org.neo4j.server.plugin.sparql;
 
-import static org.junit.Assert.*;
+import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 import info.aduna.iteration.CloseableIteration;
-
-import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.openrdf.query.BindingSet;
@@ -44,8 +44,7 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 
-import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
+import static org.junit.Assert.*;
 
 public class BerlinDatasetTest
 {
@@ -337,9 +336,9 @@ public class BerlinDatasetTest
         try
         {
             connection = new SailRepository( sail ).getConnection();
-            File file = new File( "berlin_nt_100.nt" );
-            System.out.println( "Loading " + file + ": " );
-            connection.add( file, null, RDFFormat.NTRIPLES );
+            URL url = getClass().getResource( "/berlin_nt_100.nt" );
+            System.out.println( "Loading " + url + ": " );
+            connection.add( url, null, RDFFormat.NTRIPLES );
             connection.close();
         }
         catch ( RepositoryException e1 )
@@ -354,7 +353,7 @@ public class BerlinDatasetTest
     @Test
     public void loadAndClearRDFSelfRelationship() throws Exception
     {
-        ImpermanentGraphDatabase db = new ImpermanentGraphDatabase();
+        GraphDatabaseService db = new ImpermanentGraphDatabase();
         Neo4jGraph neo = new Neo4jGraph( db );
         neo.setMaxBufferSize( 20000 );
         Sail sail = new GraphSail( neo );
@@ -363,9 +362,9 @@ public class BerlinDatasetTest
         try
         {
             connection = new SailRepository( sail ).getConnection();
-            File file = new File( "self-ref.owl" );
-            System.out.println( "Loading " + file + ": " );
-            connection.add( file, null, RDFFormat.RDFXML );
+            URL url = getClass().getResource( "/self-ref.owl" );
+            System.out.println( "Loading " + url + ": " );
+            connection.add( url, null, RDFFormat.RDFXML );
             assertEquals(2,size(db.getAllNodes()));
             
             connection.clear();

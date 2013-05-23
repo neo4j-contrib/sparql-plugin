@@ -10,7 +10,7 @@
   <groupId>org.neo4j.server.plugin</groupId>
   <artifactId>neo4j-sparql-plugin</artifactId>
   <packaging>jar</packaging>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2-neo4j19</version>
   <name>neo4j-sparql-plugin</name>
 
   <properties>

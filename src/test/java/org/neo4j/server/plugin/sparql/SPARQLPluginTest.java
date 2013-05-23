@@ -20,6 +20,9 @@
 package org.neo4j.server.plugin.sparql;
 
 import static org.junit.Assert.assertTrue;
+
+import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.oupls.sail.GraphSail;
 import info.aduna.iteration.CloseableIteration;
 
 import java.net.URI;
@@ -44,9 +47,6 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
-import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
-
 public class SPARQLPluginTest
 {
 
@@ -60,7 +60,7 @@ public class SPARQLPluginTest
         json = new OutputFormat( new JsonFormat(),
                 new URI( "http://localhost/" ), null );
         neo1 = new Neo4jGraph( new ImpermanentGraphDatabase(), true );
-        neo1.setMaxBufferSize( 20000 );
+//        neo1.setMaxBufferSize( 20000 );
         // Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
         plugin = new SPARQLPlugin();
         neo4j = new EmbeddedGraphDatabase( "target/db1" );

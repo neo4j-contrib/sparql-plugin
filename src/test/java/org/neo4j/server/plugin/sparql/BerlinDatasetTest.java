@@ -19,8 +19,11 @@
  */
 package org.neo4j.server.plugin.sparql;
 
-import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
+import com.tinkerpop.blueprints.TransactionalGraph;
+import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.oupls.sail.GraphSail;
+import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
+import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 import info.aduna.iteration.CloseableIteration;
 import java.net.URL;
 import java.util.HashMap;
@@ -30,6 +33,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -327,10 +331,9 @@ public class BerlinDatasetTest
     @Ignore
     public void loadTriples() throws Exception
     {
-//        Neo4jBatchGraph neo = new Neo4jBatchGraph( dB_DIR+"_batch" );
-        Neo4jGraph neo = new Neo4jGraph( dB_DIR );
-        neo.setMaxBufferSize( 20000 );
-        Sail sail = new GraphSail( neo );
+        Neo4jGraph neo4jGraph = new Neo4jGraph(dB_DIR);
+        BatchGraph<TransactionalGraph> neo = new BatchGraph<TransactionalGraph>(neo4jGraph, VertexIDType.NUMBER, 1000);
+        Sail sail = new GraphSail( neo4jGraph );
         sail.initialize();
         SailRepositoryConnection connection;
         try
@@ -338,7 +341,8 @@ public class BerlinDatasetTest
             connection = new SailRepository( sail ).getConnection();
             URL url = getClass().getResource( "/berlin_nt_100.nt" );
             System.out.println( "Loading " + url + ": " );
-            connection.add( url, null, RDFFormat.NTRIPLES );
+            connection.add(url, null, RDFFormat.NTRIPLES);
+            connection.commit();
             connection.close();
         }
         catch ( RepositoryException e1 )
@@ -355,7 +359,6 @@ public class BerlinDatasetTest
     {
         GraphDatabaseService db = new ImpermanentGraphDatabase();
         Neo4jGraph neo = new Neo4jGraph( db );
-        neo.setMaxBufferSize( 20000 );
         Sail sail = new GraphSail( neo );
         sail.initialize();
         SailRepositoryConnection connection;
@@ -363,13 +366,13 @@ public class BerlinDatasetTest
         {
             connection = new SailRepository( sail ).getConnection();
             URL url = getClass().getResource( "/self-ref.owl" );
-            System.out.println( "Loading " + url + ": " );
-            connection.add( url, null, RDFFormat.RDFXML );
-            assertEquals(2,size(db.getAllNodes()));
-            
-            connection.clear();
+            System.out.println("Loading " + url + ": ");
+            connection.add(url, null, RDFFormat.RDFXML);
+            assertEquals(3, size(db.getAllNodes()));
+            connection.commit();
+//            connection.clear();
             connection.close();
-            assertEquals(0,size(db.getAllNodes()));
+//            assertEquals(0, size(db.getAllNodes()));
         }
         catch ( RepositoryException e1 )
         {
@@ -390,4 +393,5 @@ public class BerlinDatasetTest
         }
         return count;
     }
+    
 }

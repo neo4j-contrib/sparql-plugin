@@ -19,6 +19,10 @@
  */
 package org.neo4j.server.plugin.sparql;
 
+import com.tinkerpop.blueprints.KeyIndexableGraph;
+import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.impls.sail.SailGraph;
+import com.tinkerpop.blueprints.oupls.sail.GraphSail;
 import info.aduna.iteration.CloseableIteration;
 
 import java.util.ArrayList;
@@ -43,16 +47,13 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
-import com.tinkerpop.blueprints.pgm.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.pgm.oupls.sail.GraphSail;
 
 @Description( "A server side SPARQL plugin for the Neo4j REST server" )
 public class SPARQLPlugin extends ServerPlugin
 {
 
-    private Sail sail;
+    private GraphSail sail;
     private SPARQLParser parser;
     private SailRepositoryConnection sc;
     private Neo4jGraph neo4jGraph;
@@ -97,7 +98,7 @@ public class SPARQLPlugin extends ServerPlugin
         if ( sail == null )
         {
             neo4jGraph = new Neo4jGraph( neo4j, true );
-            sail = new GraphSail( neo4jGraph );
+            sail = new GraphSail<KeyIndexableGraph>(neo4jGraph);
             try
             {
                 sail.initialize();

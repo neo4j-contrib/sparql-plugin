@@ -21,7 +21,11 @@ package org.neo4j.server.plugin.sparql;
 
 import static org.junit.Assert.assertTrue;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.impls.sail.SailGraph;
+import com.tinkerpop.blueprints.impls.sail.impls.LinkedDataSailGraph;
 import com.tinkerpop.blueprints.oupls.sail.GraphSail;
 import info.aduna.iteration.CloseableIteration;
 
@@ -137,6 +141,18 @@ public class SPARQLPluginTest
     {
         neo1.shutdown();
         neo4j.shutdown();
+    }
+    
+    
+    @Test
+    public void testLinkedData() {
+        LinkedDataSailGraph linkedDataSailGraph = new LinkedDataSailGraph(new SailGraph(new GraphSail(neo1)));
+        Vertex vertex = linkedDataSailGraph.addVertex("http://dbpedia.org/resource/ABBA");
+        Iterable<Vertex> vertices = vertex.getVertices(Direction.OUT);
+        assertTrue(vertices.iterator().hasNext());
+//        System.out.println(vertices.iterator().next());
+
+
     }
 
 }

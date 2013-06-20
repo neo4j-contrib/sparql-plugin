@@ -19,6 +19,7 @@
  */
 package org.neo4j.server.plugin.sparql;
 
+import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
@@ -26,6 +27,8 @@ import org.junit.Test;
 import org.neo4j.server.rest.AbstractRestFunctionalTestBase;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
+
+import java.util.Map;
 
 public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
 {
@@ -57,12 +60,13 @@ public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
         payload = "{\"query\":\"SELECT ?n WHERE { ?x <http://neo4j.org#knows> <http://neo4j.org#sara> . ?x <http://neo4j.org#name> ?n .}\"}";
         String entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post(
                 ENDPOINT ).entity();
-        assertTrue( entity.contains( "joe" ) );
+        assertTrue(entity.contains("joe"));
 
+//        System.out.println("Hej " + entity);
         payload = "{\"query\":\"SELECT ?x ?y WHERE { ?x <http://neo4j.org#knows> ?y . }\"}";
-        entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post(
-                ENDPOINT ).entity();
-        assertTrue( entity.contains( "joe" ) );
+        entity = gen.get().payload(payload).expectedStatus(Status.OK).post(
+                ENDPOINT).entity();
+        assertTrue(entity.contains("joe"));
 
     }
     

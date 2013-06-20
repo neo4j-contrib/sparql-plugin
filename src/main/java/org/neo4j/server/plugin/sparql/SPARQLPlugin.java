@@ -21,24 +21,13 @@ package org.neo4j.server.plugin.sparql;
 
 import com.tinkerpop.blueprints.KeyIndexableGraph;
 import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.impls.sail.SailGraph;
 import com.tinkerpop.blueprints.oupls.sail.GraphSail;
 import info.aduna.iteration.CloseableIteration;
-
-import java.util.ArrayList;
-import java.util.Map;
-
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.server.plugins.Description;
-import org.neo4j.server.plugins.Name;
-import org.neo4j.server.plugins.Parameter;
-import org.neo4j.server.plugins.PluginTarget;
-import org.neo4j.server.plugins.ServerPlugin;
-import org.neo4j.server.plugins.Source;
-import org.neo4j.server.rest.repr.ListRepresentation;
-import org.neo4j.server.rest.repr.Representation;
-import org.neo4j.server.rest.repr.ValueRepresentation;
+import org.neo4j.server.plugins.*;
+import org.neo4j.server.rest.repr.*;
 import org.openrdf.model.ValueFactory;
+import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.impl.EmptyBindingSet;
@@ -48,65 +37,63 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-@Description( "A server side SPARQL plugin for the Neo4j REST server" )
-public class SPARQLPlugin extends ServerPlugin
-{
+
+@Description("A server side SPARQL plugin for the Neo4j REST server")
+public class SPARQLPlugin extends ServerPlugin {
 
     private GraphSail sail;
     private SPARQLParser parser;
     private SailRepositoryConnection sc;
     private Neo4jGraph neo4jGraph;
 
-    @Name( "execute_sparql" )
-    @Description( "execute a SPARQL query." )
-    @PluginTarget( GraphDatabaseService.class )
+    @Name("execute_sparql")
+    @Description("execute a SPARQL query.")
+    @PluginTarget(GraphDatabaseService.class)
     public Representation executeSPARQL(
             @Source final GraphDatabaseService neo4j,
-            @Description( "The SPARQL query" ) @Parameter( name = "query", optional = false ) final String queryString,
-            @Description( "JSON Map of additional parameters for the query" ) @Parameter( name = "params", optional = true ) final Map params )
-    {
+            @Description("The SPARQL query") @Parameter(name = "query", optional = false) final String queryString,
+            @Description("JSON Map of additional parameters for the query") @Parameter(name = "params", optional = true) final Map params) {
 
-        initSail( neo4j );
-        try
-        {
+        initSail(neo4j);
+        try {
 
             ParsedQuery query = null;
             CloseableIteration<? extends BindingSet, QueryEvaluationException> sparqlResults;
 
-            query = parser.parseQuery( queryString, "http://neo4j.org" );
+            query = parser.parseQuery(queryString, "http://neo4j.org");
             sparqlResults = sail.getConnection().evaluate(
                     query.getTupleExpr(), query.getDataset(),
-                    new EmptyBindingSet(), false );
-            ArrayList<String> results = new ArrayList<String>();
-            while ( sparqlResults.hasNext() )
-            {
-                results.add( sparqlResults.next().toString() );
+                    new EmptyBindingSet(), false);
+            ArrayList results = new ArrayList();
+            while (sparqlResults.hasNext()) {
+                BindingSet next = sparqlResults.next();
+                Map mapResults = new HashMap();
+                for (Binding binding : next) {
+                    mapResults.put(binding.getName(), binding.getValue());
+                }
+                results.add(mapResults);
             }
-            return ListRepresentation.string( results );
-        }
-        catch ( final Exception e )
-        {
+            return SparqlObjectToRepresentationConverter.convert(results);
+        } catch (final Exception e) {
             e.printStackTrace();
-            return ValueRepresentation.string( e.getMessage() );
+            return ValueRepresentation.string(e.getMessage());
             // return new ExceptionRepresentation( e ) );
         }
     }
 
-    private void initSail( GraphDatabaseService neo4j )
-    {
-        if ( sail == null )
-        {
-            neo4jGraph = new Neo4jGraph( neo4j, true );
+    private void initSail(GraphDatabaseService neo4j) {
+        if (sail == null) {
+            neo4jGraph = new Neo4jGraph(neo4j, true);
             sail = new GraphSail<KeyIndexableGraph>(neo4jGraph);
-            try
-            {
+            try {
                 sail.initialize();
-                sc = new SailRepository( sail ).getConnection();
+                sc = new SailRepository(sail).getConnection();
                 parser = new SPARQLParser();
-            }
-            catch ( Exception e )
-            {
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -114,32 +101,28 @@ public class SPARQLPlugin extends ServerPlugin
 
     }
 
-    @Name( "insert_quad" )
-    @Description( "execute a SPARQL query." )
-    @PluginTarget( GraphDatabaseService.class )
+    @Name("insert_quad")
+    @Description("execute a SPARQL query.")
+    @PluginTarget(GraphDatabaseService.class)
     public Representation executeInsert(
             @Source final GraphDatabaseService neo4j,
-            @Description( "Subject" ) @Parameter( name = "s", optional = false ) final String s,
-            @Description( "Predicate" ) @Parameter( name = "p", optional = false ) final String p,
-            @Description( "Object" ) @Parameter( name = "o", optional = false ) final String o,
-            @Description( "Context" ) @Parameter( name = "c", optional = false ) final String c )
-    {
-        initSail( neo4j );
+            @Description("Subject") @Parameter(name = "s", optional = false) final String s,
+            @Description("Predicate") @Parameter(name = "p", optional = false) final String p,
+            @Description("Object") @Parameter(name = "o", optional = false) final String o,
+            @Description("Context") @Parameter(name = "c", optional = false) final String c) {
+        initSail(neo4j);
         ValueFactory vf = sail.getValueFactory();
-        try
-        {
-            try{
-            sc.add( vf.createURI( s ), vf.createURI( p ), vf.createURI( o ),
-                    vf.createURI( c ) );
+        try {
+            try {
+                sc.add(vf.createURI(s), vf.createURI(p), vf.createURI(o),
+                        vf.createURI(c));
             } catch (IllegalArgumentException ia) {
-                sc.add( vf.createURI( s ), vf.createURI( p ), vf.createLiteral( o ),
-                        vf.createURI( c ) );
+                sc.add(vf.createURI(s), vf.createURI(p), vf.createLiteral(o),
+                        vf.createURI(c));
             }
             sc.commit();
-            
-        }
-        catch ( RepositoryException e )
-        {
+
+        } catch (RepositoryException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

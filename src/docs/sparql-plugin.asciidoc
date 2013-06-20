@@ -1,0 +1,8 @@
+= Neo4j Sparql Plugin v{neo4j-version} =
+
+:neo4j-version: {neo4j-version}
+
+:leveloffset: 1
+
+include::dev/rest-api/index.asciidoc[]
+

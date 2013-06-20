@@ -1,0 +1,17 @@
+[[sparql-plugin]]
+SPARQL Plugin
+=============
+
+In order to user this plugin with the Neo4j Server, follow the Instructions on http://github.com/neo4j/sparql-plugin.
+
+REST - API
+----------
+
+:leveloffset: 1
+
+include::insert-quads.asciidoc[]
+
+:leveloffset: 1
+
+include::querying-sparql.asciidoc[]
+

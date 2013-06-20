@@ -19,47 +19,51 @@
  */
 package org.neo4j.server.plugin.sparql;
 
-import static junit.framework.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
+import com.sun.jersey.api.client.ClientResponse.Status;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.kernel.impl.annotations.Documented;
 import org.neo4j.server.rest.AbstractRestFunctionalTestBase;
 
-import com.sun.jersey.api.client.ClientResponse.Status;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Map;
-
-public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
-{
+public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase {
     private static final String ENDPOINT = "http://localhost:7474/db/data/ext/SPARQLPlugin/graphdb/execute_sparql";
     private static final String QUAD_ENDPOINT = "http://localhost:7474/db/data/ext/SPARQLPlugin/graphdb/insert_quad";
 
+    /**
+     * This endpoint enables the 
+     * insertion of quads into the Neo4j Server.
+     */
     @Test
-    public void insert_quads()
-    {
+    @Documented
+    public void insert_quads() {
 
         String payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#knows\",\"o\":\"http://neo4j.org#sara\", \"c\":\"http://neo4j.org\"}";
-        gen.get().payload( payload ).expectedStatus( Status.NO_CONTENT ).post(
-                QUAD_ENDPOINT ).entity();
+        gen.get().payload(payload).expectedStatus(Status.NO_CONTENT).post(
+                QUAD_ENDPOINT).entity();
 
     }
 
+    /**
+     * This is the default endpoint for 
+     * http://en.wikipedia.org/wiki/SPARQL(SPARQL) queries.
+     */
     @Test
-    public void querying_sparql()
-    {
+    @Documented
+    public void querying_sparql() {
 
         String payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#knows\",\"o\":\"http://neo4j.org#sara\", \"c\":\"http://neo4j.org\"}";
-        gen.get().payload( payload ).expectedStatus( Status.NO_CONTENT ).post(
-                QUAD_ENDPOINT ).entity();
+        gen.get().payload(payload).expectedStatus(Status.NO_CONTENT).post(
+                QUAD_ENDPOINT).entity();
 
         payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#name\",\"o\":\"joe\", \"c\":\"http://neo4j.org\"}";
-        gen.get().payload( payload ).expectedStatus( Status.NO_CONTENT ).post(
-                QUAD_ENDPOINT ).entity();
+        gen.get().payload(payload).expectedStatus(Status.NO_CONTENT).post(
+                QUAD_ENDPOINT).entity();
 
         payload = "{\"query\":\"SELECT ?n WHERE { ?x <http://neo4j.org#knows> <http://neo4j.org#sara> . ?x <http://neo4j.org#name> ?n .}\"}";
-        String entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post(
-                ENDPOINT ).entity();
+        String entity = gen.get().payload(payload).expectedStatus(Status.OK).post(
+                ENDPOINT).entity();
         assertTrue(entity.contains("joe"));
 
 //        System.out.println("Hej " + entity);
@@ -69,10 +73,9 @@ public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
         assertTrue(entity.contains("joe"));
 
     }
-    
+
     @Before
-    public void cleanContent()
-    {
+    public void cleanContent() {
 //        cleanDatabase();
 //        gen.get().setGraph( graphdb() );
     }

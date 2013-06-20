@@ -38,7 +38,9 @@ public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase {
     @Test
     @Documented
     public void insert_quads() {
+        data.get();
 
+        gen.get().setGraph(graphdb());
         String payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#knows\",\"o\":\"http://neo4j.org#sara\", \"c\":\"http://neo4j.org\"}";
         gen.get().payload(payload).expectedStatus(Status.NO_CONTENT).post(
                 QUAD_ENDPOINT).entity();
@@ -47,12 +49,13 @@ public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase {
 
     /**
      * This is the default endpoint for 
-     * http://en.wikipedia.org/wiki/SPARQL(SPARQL) queries.
+     * http://en.wikipedia.org/wiki/SPARQL[SPARQL] queries.
      */
     @Test
     @Documented
     public void querying_sparql() {
-
+        data.get();
+        gen.get().setGraph(graphdb());
         String payload = "{\"s\":\"http://neo4j.org#joe\", \"p\":\"http://neo4j.org#knows\",\"o\":\"http://neo4j.org#sara\", \"c\":\"http://neo4j.org\"}";
         gen.get().payload(payload).expectedStatus(Status.NO_CONTENT).post(
                 QUAD_ENDPOINT).entity();
@@ -66,7 +69,6 @@ public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase {
                 ENDPOINT).entity();
         assertTrue(entity.contains("joe"));
 
-//        System.out.println("Hej " + entity);
         payload = "{\"query\":\"SELECT ?x ?y WHERE { ?x <http://neo4j.org#knows> ?y . }\"}";
         entity = gen.get().payload(payload).expectedStatus(Status.OK).post(
                 ENDPOINT).entity();

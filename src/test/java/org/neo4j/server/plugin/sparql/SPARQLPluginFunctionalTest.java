@@ -58,6 +58,12 @@ public class SPARQLPluginFunctionalTest extends AbstractRestFunctionalTestBase
         String entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post(
                 ENDPOINT ).entity();
         assertTrue( entity.contains( "joe" ) );
+
+        payload = "{\"query\":\"SELECT ?x ?y WHERE { ?x <http://neo4j.org#knows> ?y . }\"}";
+        entity = gen.get().payload( payload ).expectedStatus( Status.OK ).post(
+                ENDPOINT ).entity();
+        assertTrue( entity.contains( "joe" ) );
+
     }
     
     @Before

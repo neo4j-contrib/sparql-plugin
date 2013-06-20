@@ -1,0 +1,75 @@
+.deck-container table, .deck-container table th, .deck-container table td,
+.deck-container table tr, .deck-container table tbody, .deck-container table thead,
+.deck-container table tfoot
+{
+  border: 1px solid #666666;
+}
+
+p.cypherconsole
+{
+  display: none;
+}
+
+button.cypherconsole
+{
+  text-align: center;
+}
+
+button.cypherconsole img
+{
+  vertical-align: bottom;
+  padding-right: .5em;
+  width: 48px;
+  height: 48px;
+}
+
+button.cypherconsole span
+{
+  display: none;
+}
+
+iframe.console
+{
+  width: 100%;
+  height: 20em;
+  display: block;
+}
+
+table.queryresult tbody td p code.literal
+{
+  color: #000000;
+}
+
+table.queryresult thead tr,
+table.queryresult tfoot tr
+{
+  background: #cad9dc;
+}
+
+table.queryresult tbody
+{
+  background: #d1dee1;
+}
+
+table.queryresult tbody tr.evenresult
+{
+  background: #dfe8eb;
+}
+
+table.queryresult thead th,
+{
+  font-size: 0.9375em;
+}
+
+table.queryresult tfoot th
+{
+  font-size: 0.8125em;
+  font-weight: normal;
+}
+
+table.queryresult tbody td.emptyresult p code.literal
+{
+  color: #666666;
+}
+
+

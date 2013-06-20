@@ -1,0 +1,50 @@
+body.article div#header h1,
+body.book div#header h1
+{
+  color: #ffffff;
+}
+
+body h1, body h2, body h3
+{
+  border-bottom: none;
+}
+
+body h2:first-child
+{
+    padding-bottom: 0;
+}
+
+table.configsetting
+{
+  border: 1px solid #999999;
+  margin-top: 1em;
+}
+
+table.configsetting caption
+{
+  text-align: left;
+  font-style: italic;
+}
+
+table.configsetting tbody td
+{
+  font-size: .9375em;
+}
+
+table.configsetting tbody td p code
+{
+  font-size: 1em;
+}
+
+table.configsetting tfoot td
+{
+  border-top: 1px solid #999999;
+}
+
+table.configsetting tfoot th,
+table.configsetting tfoot td
+{
+  font-size: .9375em;
+  font-weight: normal;
+}
+

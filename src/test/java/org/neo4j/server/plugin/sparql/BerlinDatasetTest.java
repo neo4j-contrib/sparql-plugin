@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2013 "Neo Technology,"
+ * Copyright (c) 2002-2014 "Neo Technology,"
  * Network Engine for Objects in Lund AB [http://neotechnology.com]
  *
  * This file is part of Neo4j.
@@ -20,11 +20,13 @@
 package org.neo4j.server.plugin.sparql;
 
 import com.tinkerpop.blueprints.TransactionalGraph;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Graph;
 import com.tinkerpop.blueprints.oupls.sail.GraphSail;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 import info.aduna.iteration.CloseableIteration;
+
+import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,7 +36,9 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.impl.util.FileUtils;
 import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.impl.EmptyBindingSet;
@@ -64,7 +68,7 @@ public class BerlinDatasetTest
     public void berlinQuery() throws Exception
     {
         loadTriples();
-        Sail sail = new GraphSail( new Neo4jGraph( dB_DIR ) );
+        Sail sail = new GraphSail( new Neo4j2Graph( dB_DIR ) );
         sail.initialize();
         Map<String, String> queries = new HashMap<String, String>();
         queries.put(
@@ -327,11 +331,10 @@ public class BerlinDatasetTest
         sail.shutDown();
     }
 
-    @Test
-    @Ignore
     public void loadTriples() throws Exception
     {
-        Neo4jGraph neo4jGraph = new Neo4jGraph(dB_DIR);
+        FileUtils.deleteRecursively(new File(dB_DIR));
+        Neo4j2Graph neo4jGraph = new Neo4j2Graph(dB_DIR);
         BatchGraph<TransactionalGraph> neo = new BatchGraph<TransactionalGraph>(neo4jGraph, VertexIDType.NUMBER, 1000);
         Sail sail = new GraphSail( neo4jGraph );
         sail.initialize();
@@ -357,8 +360,8 @@ public class BerlinDatasetTest
     @Test
     public void loadAndClearRDFSelfRelationship() throws Exception
     {
-        GraphDatabaseService db = new ImpermanentGraphDatabase();
-        Neo4jGraph neo = new Neo4jGraph( db );
+        GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        Neo4j2Graph neo = new Neo4j2Graph( db );
         Sail sail = new GraphSail( neo );
         sail.initialize();
         SailRepositoryConnection connection;
@@ -368,7 +371,9 @@ public class BerlinDatasetTest
             URL url = getClass().getResource( "/self-ref.owl" );
             System.out.println("Loading " + url + ": ");
             connection.add(url, null, RDFFormat.RDFXML);
-            assertEquals(3, size(db.getAllNodes()));
+            neo.autoStartTransaction();
+            assertEquals(2, size(db.getAllNodes()));
+            neo.commit();
             connection.commit();
 //            connection.clear();
             connection.close();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2013 "Neo Technology,"
+ * Copyright (c) 2002-2014 "Neo Technology,"
  * Network Engine for Objects in Lund AB [http://neotechnology.com]
  *
  * This file is part of Neo4j.
@@ -19,9 +19,9 @@
  */
 package org.neo4j.server.rest.repr;
 
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jEdge;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jVertex;
+import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Edge;
+import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Graph;
+import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Vertex;
 import org.neo4j.helpers.collection.FirstItemIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.IteratorWrapper;
@@ -90,14 +90,14 @@ public class SparqlObjectToRepresentationConverter {
             return ObjectToRepresentationConverter.getSingleRepresentation(result);
         }
 
-        if (result instanceof Neo4jVertex) {
-            return new NodeRepresentation(((Neo4jVertex) result).getRawVertex());
+        if (result instanceof Neo4j2Vertex) {
+            return new NodeRepresentation(((Neo4j2Vertex) result).getRawVertex());
         }
-        if (result instanceof Neo4jEdge) {
-            return new RelationshipRepresentation(((Neo4jEdge) result).getRawEdge());
+        if (result instanceof Neo4j2Edge) {
+            return new RelationshipRepresentation(((Neo4j2Edge) result).getRawEdge());
         }
-        if (result instanceof Neo4jGraph) {
-            return ValueRepresentation.string(((Neo4jGraph) result).getRawGraph().toString());
+        if (result instanceof Neo4j2Graph) {
+            return ValueRepresentation.string(((Neo4j2Graph) result).getRawGraph().toString());
         }
 
         return ObjectToRepresentationConverter.getSingleRepresentation(result);

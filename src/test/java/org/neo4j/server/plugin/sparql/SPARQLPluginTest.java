@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2013 "Neo Technology,"
+ * Copyright (c) 2002-2014 "Neo Technology,"
  * Network Engine for Objects in Lund AB [http://neotechnology.com]
  *
  * This file is part of Neo4j.
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Graph;
 import com.tinkerpop.blueprints.impls.sail.SailGraph;
 import com.tinkerpop.blueprints.impls.sail.impls.LinkedDataSailGraph;
 import com.tinkerpop.blueprints.oupls.sail.GraphSail;
@@ -38,11 +38,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.server.rest.repr.OutputFormat;
 import org.neo4j.server.rest.repr.Representation;
 import org.neo4j.server.rest.repr.formats.JsonFormat;
 import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.repository.RepositoryException;
@@ -63,15 +65,15 @@ public class SPARQLPluginTest
     {
         json = new OutputFormat( new JsonFormat(),
                 new URI( "http://localhost/" ), null );
-        neo1 = new Neo4jGraph( new ImpermanentGraphDatabase(), true );
+        neo1 = new Neo4j2Graph( new TestGraphDatabaseFactory().newImpermanentDatabase());
 //        neo1.setMaxBufferSize( 20000 );
         // Neo4jBatchGraph neo1 = new Neo4jBatchGraph( "target/db1" );
         plugin = new SPARQLPlugin();
-        neo4j = new EmbeddedGraphDatabase( "target/db1" );
+        neo4j = new GraphDatabaseFactory().newEmbeddedDatabase("target/db1");
 
     }
 
-    public static Sail insertData( Neo4jGraph neo1 ) throws SailException,
+    public static Sail insertData( Neo4j2Graph neo1 ) throws SailException,
             RepositoryException
     {
         Sail sail = new GraphSail( neo1 );
@@ -106,7 +108,7 @@ public class SPARQLPluginTest
     private static String queryString = "" + "SELECT ?x ?y " + "WHERE { "
                                         + "?x <http://neo4j.org#knows> ?y ."
                                         + "}";
-    private static Neo4jGraph neo1;
+    private static Neo4j2Graph neo1;
 
     @Test
     @Ignore

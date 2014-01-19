@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2013 "Neo Technology,"
+ * Copyright (c) 2002-2014 "Neo Technology,"
  * Network Engine for Objects in Lund AB [http://neotechnology.com]
  *
  * This file is part of Neo4j.
@@ -20,10 +20,11 @@
 package org.neo4j.server.plugin.sparql;
 
 import com.tinkerpop.blueprints.KeyIndexableGraph;
-import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
+import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Graph;
 import com.tinkerpop.blueprints.oupls.sail.GraphSail;
 import info.aduna.iteration.CloseableIteration;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.server.plugins.*;
 import org.neo4j.server.rest.repr.*;
 import org.openrdf.model.ValueFactory;
@@ -48,7 +49,7 @@ public class SPARQLPlugin extends ServerPlugin {
     private GraphSail sail;
     private SPARQLParser parser;
     private SailRepositoryConnection sc;
-    private Neo4jGraph neo4jGraph;
+    private Neo4j2Graph neo4jGraph;
 
     @Name("execute_sparql")
     @Description("execute a SPARQL query.")
@@ -59,7 +60,7 @@ public class SPARQLPlugin extends ServerPlugin {
             @Description("JSON Map of additional parameters for the query") @Parameter(name = "params", optional = true) final Map params) {
 
         initSail(neo4j);
-        try {
+        try (Transaction tx = neo4j.beginTx()) {
 
             ParsedQuery query = null;
             CloseableIteration<? extends BindingSet, QueryEvaluationException> sparqlResults;
@@ -77,7 +78,9 @@ public class SPARQLPlugin extends ServerPlugin {
                 }
                 results.add(mapResults);
             }
-            return SparqlObjectToRepresentationConverter.convert(results);
+            Representation representation = SparqlObjectToRepresentationConverter.convert(results);
+            tx.success();
+            return representation;
         } catch (final Exception e) {
             e.printStackTrace();
             return ValueRepresentation.string(e.getMessage());
@@ -87,7 +90,7 @@ public class SPARQLPlugin extends ServerPlugin {
 
     private void initSail(GraphDatabaseService neo4j) {
         if (sail == null) {
-            neo4jGraph = new Neo4jGraph(neo4j, true);
+            neo4jGraph = new Neo4j2Graph(neo4j);
             sail = new GraphSail<KeyIndexableGraph>(neo4jGraph);
             try {
                 sail.initialize();

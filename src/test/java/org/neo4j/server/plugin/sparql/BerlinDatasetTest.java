@@ -371,7 +371,7 @@ public class BerlinDatasetTest
             URL url = getClass().getResource( "/self-ref.owl" );
             System.out.println("Loading " + url + ": ");
             connection.add(url, null, RDFFormat.RDFXML);
-            neo.autoStartTransaction();
+            neo.autoStartTransaction(true);
             assertEquals(2, size(db.getAllNodes()));
             neo.commit();
             connection.commit();

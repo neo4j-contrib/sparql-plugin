@@ -7,6 +7,6 @@ Building from source and deploying into Neo4j Server
 -----------------------------------------------------
 
     mvn clean package
-    unzip target/neo4j-sparql-plugin-0.2-SNAPSHOT-server-plugin.zip -d $NEO4J_HOME/plugins/gremlin-plugin
+    unzip target/neo4j-sparql-plugin-0.2-SNAPSHOT-server-plugin.zip -d $NEO4J_HOME/plugins/sparql-plugin
     cd $NEO4J_HOME
     bin/neo4j restart

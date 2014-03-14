@@ -102,7 +102,6 @@
             <groupId>com.tinkerpop.blueprints</groupId>
             <artifactId>blueprints-neo4j2-graph</artifactId>
             <version>${blueprints.version}</version>
-            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.neo4j</groupId>

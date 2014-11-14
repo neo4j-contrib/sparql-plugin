@@ -239,9 +239,26 @@
             </snapshots>
         </repository>
         <repository>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
             <id>openrdf</id>
             <name>openrdf</name>
             <url>http://repo.aduna-software.org/maven2/releases/</url>
+        </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>ontotext.aduna</id>
+            <name>Maven repository of Aduna software - hosted by OntoText</name>
+            <url>http://maven.ontotext.com/content/repositories/aduna/</url>
         </repository>
     </repositories>
     <profiles>

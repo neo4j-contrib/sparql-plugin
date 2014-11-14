@@ -1,5 +1,5 @@
-This is a [Neo4j Server](http://neo4j.org/download) plugin, providing [Sparql](http://en.wikipedia.org/wiki/SPARQL)
- [Neo4j Server](http://neo4j.org). This effectively turns the Neo4j Server into a Triple Store.
+This is a [Neo4j Server](http://neo4j.com/download/) plugin, providing [Sparql](http://en.wikipedia.org/wiki/SPARQL)
+ [Neo4j Server](http://neo4j.com/). This effectively turns the Neo4j Server into a Triple Store.
  
 For usage via the REST API, see the [current documentation](http://neo4j-contrib.github.io/sparql-plugin/).
 

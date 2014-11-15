@@ -16,9 +16,9 @@
 
     <properties>
         <!-- Jar Versions -->
-        <sesame.version>2.6.10</sesame.version>
+        <sesame.version>2.7.13</sesame.version>
         <servlet-api.version>2.5</servlet-api.version>
-        <neo4j.version>2.0.0</neo4j.version>
+        <neo4j.version>2.1.5</neo4j.version>
         <blueprints.version>2.5.0</blueprints.version>
         <jersey.server.version>1.9</jersey.server.version>
         <license-text.header>GPL-3-header.txt</license-text.header>
@@ -173,7 +173,13 @@
             <version>${neo4j.version}</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+         <dependency>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+            <groupId>commons-io</groupId>                                                                                                       
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>                                                                                                                                                                                                                                                                                                                                                                                                                              
+        </dependency>
+        
+       </dependencies>                                                                                                                                                         
     <build>
         <resources>
             <resource>
